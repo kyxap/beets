@@ -28,21 +28,27 @@ class BadFilesPluginTest(PluginTestCase):
     def test_quiet_import_skips_prompt(self):
         plugin = BadFiles()
         task = SimpleNamespace(_badfiles_checks_failed=[["bad: error"]])
+        session = SimpleNamespace(config={"quiet": True})
 
-        self.config["import"]["quiet"] = True
+        # Spy on ui.input_options
+        with patch("beetsplug.badfiles.ui.input_options") as mock_input:
+            result = plugin.on_import_task_before_choice(task, session=session)
 
-        with patch("beetsplug.badfiles.ui.input_options", return_value="s"):
-            result = plugin.on_import_task_before_choice(task, session=None)
-
-        assert result is None
+            # Verify it skips automatically
+            assert result == importer.Action.SKIP
+            # VERIFY: Prompt was NOT called
+            mock_input.assert_not_called()
 
     def test_non_quiet_import_calls_prompt(self):
         plugin = BadFiles()
         task = SimpleNamespace(_badfiles_checks_failed=[["bad: error"]])
+        session = SimpleNamespace(config={"quiet": False})
 
-        self.config["import"]["quiet"] = False
+        # Mock ui.input_options to simulate user choosing "skip"
+        with patch("beetsplug.badfiles.ui.input_options", return_value="s") as mock_input:
+            result = plugin.on_import_task_before_choice(task, session=session)
 
-        with patch("beetsplug.badfiles.ui.input_options", return_value="s"):
-            result = plugin.on_import_task_before_choice(task, session=None)
-
-        assert result == importer.Action.SKIP
+            # Verify result
+            assert result == importer.Action.SKIP
+            # VERIFY: Prompt WAS called exactly once
+            mock_input.assert_called_once()

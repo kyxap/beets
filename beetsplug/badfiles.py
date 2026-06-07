@@ -169,8 +169,10 @@ class BadFiles(BeetsPlugin):
             task._badfiles_checks_failed = checks_failed
 
     def on_import_task_before_choice(self, task, session):
-        if config["import"]["quiet"]:
-            return None
+        # If running in quiet mode, skip corrupted files automatically
+        quiet = session.config["quiet"]
+        if quiet.get(bool) if hasattr(quiet, "get") else quiet:
+            return importer.Action.SKIP
 
         if hasattr(task, "_badfiles_checks_failed"):
             ui.print_(

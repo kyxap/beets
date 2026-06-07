@@ -158,6 +158,7 @@ Bug fixes
 - :doc:`plugins/badfiles`: Respect quiet mode (the ``--quiet`` flag or
   ``import.quiet: yes`` config) during import so the corrupt-file prompt is
   suppressed in non-interactive imports. :bug:`4736`
+- :doc:`plugins/badfiles`: The plugin now properly respects the import quiet mode, automatically skipping corrupted files instead of prompting for user input. :bug:`4736`
 
 ..
     For plugin developers
